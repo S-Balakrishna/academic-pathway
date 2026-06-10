@@ -38,6 +38,7 @@ export async function POST(request) {
     const rationale = ai?.rationale || buildRationale({ pathway, experienceYears, qualification: effectiveQualification, careerGoal: effectiveGoal });
     const strengths = ai?.strengths || [];
     const paths = ai?.paths || [];
+    const alternatives = ai?.alternatives || [];
 
     // 3. Persist the full record to Supabase
     const { data: inserted, error: insertError } = await supabase
@@ -54,6 +55,7 @@ export async function POST(request) {
         scores,
         strengths,
         paths,
+        alternatives,
         profile: { vision, domains: effectiveDomains, strength, time, budget, success },
       })
       .select()
@@ -71,7 +73,7 @@ export async function POST(request) {
       metadata: { recommendation: pathway },
     });
 
-    return NextResponse.json({ pathway, scores, rationale, strengths, paths, id: inserted.id });
+    return NextResponse.json({ pathway, scores, rationale, strengths, paths, alternatives, id: inserted.id });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Could not process the request." }, { status: 500 });
