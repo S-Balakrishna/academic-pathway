@@ -52,6 +52,7 @@ export async function writeRationale(profile) {
       rationale: parsed.rationale,
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 3) : [],
       paths: Array.isArray(parsed.paths) ? parsed.paths.slice(0, 3) : [],
+      alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.slice(0, 2) : [],
     };
   } catch (e) {
     console.error("Gemini call failed:", e);
@@ -85,8 +86,8 @@ REASONING:
 - The PRIMARY PATHWAY above was decided by a separate auditable engine. Do NOT contradict or replace it; treat it as the anchor.
 - "rationale": explain warmly why the primary pathway fits THIS person. Reference at least two of their specific answers (vision, strengths, domains, success). 60-90 words. Second person ("you").
 - "strengths": identify exactly 3 genuine strengths evident from their answers. Each a short phrase (3-6 words), specific to them, not generic.
-- "paths": suggest 2-3 REALISTIC, CURRENT options that fit the primary pathway and their profile. These can be real-world directions people actually pursue today (specific program types, executive routes, applied research tracks, industry-recognised routes) — not only traditional degrees. Rank them best-first with "rank" 1,2,3. Each has a "title" (specific, e.g. "Executive DBA in Data & Analytics Leadership") and a "why" (one sentence tying it to their profile).
-
+- "paths": suggest 2-3 REALISTIC, CURRENT options WITHIN the primary pathway, tuned to their profile. Rank them best-first with "rank" 1,2,3. Each has a "title" (specific, e.g. "Executive DBA in Data & Analytics Leadership") and a "why" (one sentence tying it to their profile).
+- "alternatives": suggest 2 routes BEYOND the four formal academic pathways that might genuinely serve this person — things like bootcamps, fellowships, industry certifications, apprenticeships, building a startup, open-source or portfolio routes, etc. Only suggest what truly fits their goals, time, and budget. Each has a "title" and a "why". If nothing non-traditional genuinely fits, return an empty array.
 OUTPUT (return ONLY valid JSON, no markdown, this exact shape):
 {
   "rationale": "string",
@@ -94,6 +95,9 @@ OUTPUT (return ONLY valid JSON, no markdown, this exact shape):
   "paths": [
     { "rank": 1, "title": "string", "why": "string" },
     { "rank": 2, "title": "string", "why": "string" }
+  ],
+  "alternatives": [
+    { "title": "string", "why": "string" }
   ]
 }
 

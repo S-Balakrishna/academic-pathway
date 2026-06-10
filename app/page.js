@@ -256,6 +256,23 @@ export default function Home() {
               </div>
             )}
 
+            {result.alternatives?.length > 0 && (
+              <div className="mt-10">
+                <p className="mb-2 text-xs tracking-[0.2em] uppercase" style={{ color: "var(--gold)" }}>Beyond the traditional path</p>
+                <p className="mb-4 text-sm" style={{ color: "var(--ivory-dim)" }}>
+                  These aren&apos;t formal degrees — but given who you are, they may serve you just as well.
+                </p>
+                <div className="flex flex-col gap-3">
+                  {result.alternatives.map((a, i) => (
+                    <div key={i} className="rounded-2xl p-5" style={{ background: "transparent", border: "1px dashed rgba(217,164,65,0.4)" }}>
+                      <p className="text-lg" style={{ color: "var(--gold-soft)" }}>{a.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--ivory-dim)" }}>{a.why}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-12">
               <p className="mb-4 text-xs tracking-[0.2em] uppercase" style={{ color: "var(--ivory-dim)" }}>Why this fits</p>
               <ScoreRow scores={result.scores} />
