@@ -79,11 +79,17 @@ function decidePathway(experienceYears, qualificationRank, careerGoal) {
 
 // Public function: takes a profile, returns the recommendation + the math behind it.
 export function recommend({ qualification, experienceYears, careerGoal }) {
-  const qualificationRank = QUALIFICATION_RANK[qualification] ?? 0;
+  // If qualification is an unrecognized "other" value, default to a mid rank (Bachelor's-level).
+  const qualificationRank = QUALIFICATION_RANK[qualification] ?? 2;
   const exp = Number(experienceYears) || 0;
 
-  const scores = scoreDimensions(exp, qualificationRank, careerGoal);
-  const pathway = decidePathway(exp, qualificationRank, careerGoal);
+  // If careerGoal is an unrecognized "other" value, default to "skill" for scoring.
+  const goalKey = ["skill", "industry", "research", "recognition"].includes(careerGoal)
+    ? careerGoal
+    : "skill";
+
+  const scores = scoreDimensions(exp, qualificationRank, goalKey);
+  const pathway = decidePathway(exp, qualificationRank, goalKey);
 
   return {
     pathway,

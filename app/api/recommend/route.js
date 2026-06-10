@@ -10,22 +10,32 @@ export async function POST(request) {
       fullName, email, qualification, experienceYears,
       profession, careerGoal,
       vision, domains, strength, time, budget, success,
+      qualificationOther, careerGoalOther, domainsOther,
     } = body;
+
+    // If the user typed a custom "other" answer, prefer it for display/AI.
+    const effectiveQualification = qualificationOther?.trim() || qualification;
+    const effectiveGoal = careerGoalOther?.trim() || careerGoal;
+    const effectiveDomains = Array.isArray(domains) ? [...domains] : [];
+    if (domainsOther?.trim()) effectiveDomains.push(domainsOther.trim());
 
     // Server-side validation (never trust the client alone)
     if (!fullName || !email || experienceYears === "" || experienceYears == null) {
       return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
     }
 
-    // 1. Deterministic engine decides the pathway + scores
+    // 1. Deterministic engine decides the pathway + scores (uses structured values)
     const { pathway, scores } = recommend({ qualification, experienceYears, careerGoal });
 
-    // 2. AI returns structured output; fall back to templated rationale if it fails.
+    // 2. AI returns structured output; feed it the user's actual ("effective") answers.
     const ai = await writeRationale({
-      pathway, fullName, qualification, experienceYears, profession, careerGoal,
-      vision, domains, strength, time, budget, success,
+      pathway, fullName,
+      qualification: effectiveQualification,
+      experienceYears, profession,
+      careerGoal: effectiveGoal,
+      vision, domains: effectiveDomains, strength, time, budget, success,
     });
-    const rationale = ai?.rationale || buildRationale({ pathway, experienceYears, qualification, careerGoal });
+    const rationale = ai?.rationale || buildRationale({ pathway, experienceYears, qualification: effectiveQualification, careerGoal: effectiveGoal });
     const strengths = ai?.strengths || [];
     const paths = ai?.paths || [];
 
@@ -35,16 +45,16 @@ export async function POST(request) {
       .insert({
         full_name: fullName,
         email,
-        qualification,
+        qualification: effectiveQualification || qualification,
         experience_years: Number(experienceYears) || 0,
         profession: profession || null,
-        career_goal: careerGoal,
+        career_goal: effectiveGoal || careerGoal,
         recommendation: pathway,
         rationale,
         scores,
         strengths,
         paths,
-        profile: { vision, domains, strength, time, budget, success },
+        profile: { vision, domains: effectiveDomains, strength, time, budget, success },
       })
       .select()
       .single();
@@ -54,7 +64,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Could not save your submission." }, { status: 500 });
     }
 
-    // 4. Automation hook: log an analytics event (fire-and-forget)
+    // 4. Automation hook: log an analytics event
     await supabase.from("events").insert({
       event_type: "submission_created",
       submission_id: inserted.id,

@@ -6,7 +6,7 @@ const CARDS = [
   { id: "intro", type: "intro" },
   { id: "fullName", type: "text", q: "First — what should I call you?", placeholder: "Your name", required: true },
   { id: "email", type: "text", q: "And where should your pathway find you?", placeholder: "you@email.com", inputType: "email", required: true },
-  { id: "qualification", type: "choice", q: "How far have you taken your studies so far?", multi: false, options: [
+  { id: "qualification", type: "choice", q: "How far have you taken your studies so far?", multi: false, allowOther: true, options: [
       { v: "High school", label: "High school / 12th" },
       { v: "Diploma", label: "Diploma" },
       { v: "Bachelor's", label: "Bachelor's degree" },
@@ -21,14 +21,14 @@ const CARDS = [
       { v: "16", label: "More than 12 years" },
   ]},
   { id: "profession", type: "text", q: "What do you spend your days doing now?", placeholder: "e.g. Software developer, teacher, founder…", required: false },
-  { id: "careerGoal", type: "choice", q: "When you look ahead — what are you really chasing?", multi: false, options: [
+  { id: "careerGoal", type: "choice", q: "When you look ahead — what are you really chasing?", multi: false, allowOther: true, options: [
       { v: "skill", label: "Sharpening my skills" },
       { v: "industry", label: "Rising into industry leadership" },
       { v: "research", label: "Moving into research & academia" },
       { v: "recognition", label: "Recognition for my life's work" },
   ]},
   { id: "vision", type: "longtext", q: "Picture yourself five years from now. Where are you?", placeholder: "The more real you make it, the better I can match you…", required: false },
-  { id: "domains", type: "choice", q: "Which worlds genuinely light you up?", multi: true, options: [
+  { id: "domains", type: "choice", q: "Which worlds genuinely light you up?", multi: true, allowOther: true, options: [
       { v: "Technology & AI", label: "Technology & AI" },
       { v: "Business", label: "Business & management" },
       { v: "Data", label: "Data & analytics" },
@@ -67,6 +67,7 @@ export default function Home() {
   const [answers, setAnswers] = useState({ domains: [] });
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [showOther, setShowOther] = useState({});
 
   const card = CARDS[step];
   const progress = Math.round((step / (CARDS.length - 1)) * 100);
@@ -107,6 +108,9 @@ export default function Home() {
           profession: answers.profession, careerGoal: answers.careerGoal,
           vision: answers.vision, domains: answers.domains, strength: answers.strength,
           time: answers.time, budget: answers.budget, success: answers.success,
+          qualificationOther: answers.qualification_other,
+          careerGoalOther: answers.careerGoal_other,
+          domainsOther: answers.domains_other,
         }),
       });
       if (!res.ok) throw new Error("Something hiccuped. Try again?");
@@ -176,10 +180,22 @@ export default function Home() {
                         className={`choice ${selected ? "sel" : ""}`}>{o.label}</button>
                     );
                   })}
+                  {card.allowOther && (
+                    <button onClick={() => setShowOther((v) => ({ ...v, [card.id]: !v[card.id] }))}
+                      className={`choice ${showOther[card.id] ? "sel" : ""}`}>
+                      Something else…
+                    </button>
+                  )}
                 </div>
+                {card.allowOther && showOther[card.id] && (
+                  <input autoFocus value={answers[card.id + "_other"] || ""}
+                    onChange={(e) => set(card.id + "_other", e.target.value)}
+                    placeholder="Tell me in your own words…"
+                    className="line-input mt-4" style={{ fontSize: "1.15rem" }} />
+                )}
                 <div className="mt-8 flex items-center justify-between">
                   <button onClick={back} className="btn-ghost">← Back</button>
-                  {card.multi && <button onClick={next} className="btn-gold">Continue →</button>}
+                  {(card.multi || (card.allowOther && showOther[card.id])) && <button onClick={next} className="btn-gold">Continue →</button>}
                 </div>
               </div>
             )}
